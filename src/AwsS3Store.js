@@ -93,7 +93,7 @@ class AwsS3Store {
     // await this.#deletePrevious(options);
     
     try {
-      const fileStream = fs.createReadStream(`${options.session}.zip`);
+      const fileStream = fs.createReadStream(options.path ?? `${options.session}.zip`);
       const params = {
         Bucket: this.bucketName,
         Key: remoteFilePath,
@@ -102,7 +102,7 @@ class AwsS3Store {
         ContentType: 'application/zip'
       };
       await this.s3Client.send(new PutObjectCommand(params));
-      this.debugLog(`[METHOD: save] File saved. PATH='${remoteFilePath}'.`);
+      this.debugLog(`[METHOD: save] File saved. REMOTE_PATH='${remoteFilePath}', LOCAL_PATH='${options.path}'`);
     } catch (error) {
       this.debugLog(`[METHOD: save] Error: ${error.message}`);
       throw error;      
