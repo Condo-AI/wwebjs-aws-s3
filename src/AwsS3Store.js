@@ -1,7 +1,8 @@
 const path = require('path');
 const fs = require('fs');
-const AWS = require('@aws-sdk/client-s3')
-const { ListObjectsCommand, PutObjectCommand, HeadObjectCommand, GetObjectCommand, DeleteObjectCommand } = AWS
+const AWS = require('@aws-sdk/client-s3');
+const stream = require('stream/promises');
+const { ListObjectsCommand, PutObjectCommand, HeadObjectCommand, GetObjectCommand, DeleteObjectCommand } = AWS;
 
 class AwsS3Store {
   /**
@@ -122,13 +123,9 @@ class AwsS3Store {
     };
 
     try {
-      const fileStream = fs.createWriteStream(options.path);
+      fs.mkdirSync(path.dirname(options.path), { recursive: true });
       const response = await this.s3Client.send(new GetObjectCommand(params));
-      await new Promise((resolve, reject) => {
-        response.Body.pipe(fileStream)
-          .on('error', reject)
-          .on('finish', resolve);
-      });
+      await stream.pipeline(response.Body, fs.createWriteStream(options.path));  
   
       this.debugLog(`[METHOD: extract] File extracted. REMOTE_PATH='${remoteFilePath}', LOCAL_PATH='${options.path}'.`);
     } catch (error) {
